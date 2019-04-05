@@ -42,15 +42,14 @@ func main() {
 	defer window.Destroy()
 	defer renderer.Destroy()
 
-	// rectArray := createRectArray(
-	// 	screenDim,
-	// 	totalScreen)
-
 	// blockArray := createBlockArray(
 	blockArray := createBlockArray(
 		screenDim,
 		totalScreen,
 		blockDim)
+
+	// Create New Player
+	p := newPlayer()
 
 	for {
 		for event := sdl.PollEvent(); event != nil; event = sdl.PollEvent() {
@@ -68,19 +67,48 @@ func main() {
 						blockArray[i].renderBlock(renderer)
 					}
 				}
+
+				if val.Keysym.Sym == sdl.K_ESCAPE {
+					fmt.Println("Score is: ", p.score)
+				}
 			}
 		}
 
 		mouseX, mouseY, mouseButtonState := sdl.GetMouseState()
-
 		if mouseButtonState == 1 {
-
 			boxIndex := (mouseX / blockDim) + (mouseY/blockDim)*blocksPerPage
 
-			//from player.go
-			blockArray[boxIndex].drawOnBlock(renderer, int(mouseX), int(mouseY), blockDim)
-			// colorRect(renderer, &rectArray[index])
-			// colorRect(renderer, &rectArray[index])
+			//if the user has not touched a block yet
+			if p.currentBlock == -1 {
+				p.currentBlock = boxIndex
+			}
+
+			if blockArray[boxIndex].isAllowed() && p.currentBlock == boxIndex {
+				p.active = true
+				blockArray[boxIndex].drawOnBlock(renderer, int(mouseX), int(mouseY), blockDim)
+			} else if p.currentBlock != boxIndex {
+				//do nothing
+
+			} else {
+				p.currentBlock = -1
+			}
+
+		} else {
+			if p.active {
+				if blockArray[p.currentBlock].blockFilled() {
+					blockArray[p.currentBlock].fillBlock(255, 0, 0, renderer)
+					p.score++
+					fmt.Println("You coloured all of it!")
+
+				} else {
+					blockArray[p.currentBlock].fillBlock(0, 0, 0, renderer)
+					fmt.Println("You didn't colour all of it :(")
+				}
+
+				p.currentBlock = -1
+				p.active = false
+			}
+
 		}
 
 		renderer.Present()

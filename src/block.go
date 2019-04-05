@@ -1,21 +1,21 @@
 package main
 
 import (
-	"fmt"
-
 	"github.com/veandco/go-sdl2/sdl"
 )
 
 type block struct {
 	pixels        []pixel
 	isFilled      bool
+	busy          bool
 	owner         int
 	coloredPixels int
-	minColored    int
-	offsetX       int
-	offsetY       int
-	dimension     int
-	blockID       int
+
+	minColored int
+	offsetX    int
+	offsetY    int
+	dimension  int
+	blockID    int
 }
 
 //make block 50x50 -> 2500 pixels
@@ -54,6 +54,7 @@ func createPixelArray(offsetX int, offsetY int, dimension int) []pixel {
 		pixelNumber := xCoor + yCoor*dimension
 
 		// if the pixel is regular pixel or border pixel
+		// arbitrarily chose if border pixels are 2 pixels from edge
 		canChange := true
 		if pixelNumber < 2*dimension ||
 			(pixelNumber+1)%dimension == 0 ||
@@ -111,21 +112,25 @@ func (b *block) isAllowed() bool {
 
 // blockFilled checks if minimum number of blocks are filled
 func (b *block) blockFilled() bool {
-	if b.coloredPixels < b.minColored {
+	if b.coloredPixels > b.minColored {
 		return true
 	}
 
 	return false
 }
 
-// fillBlock will either fill the block or undo the changes made by the player
-func (b *block) fillBlock() {
-	fmt.Println("fillBlock")
-	if b.blockFilled() {
-		//colour whole block
+func (b *block) resetBlock(renderer *sdl.Renderer) {
+	b.fillBlock(0, 0, 0, renderer)
+	b.coloredPixels = 0
+}
 
-	} else {
-		//remove block colour
-		//this might be a problem
+// fillBlock will either fill the block or undo the changes made by the player
+func (b *block) fillBlock(red uint8, green uint8, blue uint8, renderer *sdl.Renderer) {
+	for i := 0; i < len(b.pixels); i++ {
+		if b.pixels[i].canChange {
+			renderer.SetDrawColor(red, green, blue, 255)
+			renderer.FillRect(&b.pixels[i].val)
+		}
 	}
+
 }
