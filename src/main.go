@@ -7,11 +7,10 @@ import (
 )
 
 const (
-	screenWidth  = 700
-	screenHeight = 700
-	boxSize      = 1
-	totalScreen  = screenWidth * screenHeight
-	rectSize     = screenHeight
+	screenDim     = 700
+	blockDim      = 50
+	totalScreen   = screenDim * screenDim
+	blocksPerPage = screenDim / blockDim
 )
 
 func main() {
@@ -24,8 +23,8 @@ func main() {
 		"Game Start",
 		sdl.WINDOWPOS_UNDEFINED,
 		sdl.WINDOWPOS_UNDEFINED,
-		screenWidth,
-		screenHeight,
+		screenDim,
+		screenDim,
 		sdl.WINDOW_OPENGL)
 
 	if err != nil {
@@ -44,12 +43,14 @@ func main() {
 	defer renderer.Destroy()
 
 	rectArray := createRectArray(
-		screenWidth,
-		screenHeight,
+		screenDim,
 		totalScreen)
 
-	b1 := initBlock(1, 0, 0, 700)
-	b2 := initBlock(1, 100, 0, 700)
+	// blockArray := createBlockArray(
+	blockArray := createBlockArray(
+		screenDim,
+		totalScreen,
+		blockDim)
 
 	for {
 		for event := sdl.PollEvent(); event != nil; event = sdl.PollEvent() {
@@ -62,23 +63,24 @@ func main() {
 				if val.Keysym.Sym == sdl.K_SPACE {
 					fmt.Println("SPACE pressed")
 
-					b1.drawBlock(renderer)
-					b2.drawBlock(renderer)
-
-					// for i := 0; i < len(b.pixels); i++ {
-					// 	renderer.SetDrawColor(255, 255, 255, 255)
-					// 	renderer.FillRect(&b.pixels[i])
-					// }
+					//creates board
+					for i := 0; i < len(blockArray); i++ {
+						blockArray[i].drawBlock(renderer)
+					}
 				}
 			}
 		}
 
-		//checks if mouse is clicked
 		mouseX, mouseY, mouseButtonState := sdl.GetMouseState()
 
 		if mouseButtonState == 1 {
-			fmt.Printf("Mouse at x: %+v, y: %+v, state: %+v\n", mouseX, mouseY, mouseButtonState)
-			index := int((mouseX) + rectSize*(mouseY))
+
+			// fmt.Printf("Mouse at x: %+v, y: %+v, state: %+v\n", mouseX, mouseY, mouseButtonState)
+
+			index := int(mouseX + screenDim*mouseY)
+
+			boxIndex := (mouseX / blockDim) + (mouseY/blockDim)*blocksPerPage
+			fmt.Println("Selected this box: ", boxIndex)
 
 			//from player.go
 			colorRect(renderer, &rectArray[index])

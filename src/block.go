@@ -7,7 +7,6 @@ import (
 )
 
 type block struct {
-	// pixels        []sdl.Rect
 	pixels        []pixel
 	isFilled      bool
 	owner         int
@@ -21,7 +20,6 @@ type block struct {
 
 //make block 50x50 -> 2500 pixels
 //window Dimension
-
 func initBlock(blockID int, xIndex int, yIndex int, windowD int) (b block) {
 
 	//Configure fields for Block
@@ -55,8 +53,8 @@ func createPixelArray(offsetX int, offsetY int, dimension int) []pixel {
 		yWithOffset := int32(yCoor + offsetY)
 		pixelNumber := xCoor + yCoor*dimension
 
+		// if the pixel is regular pixel or border pixel
 		canChange := true
-
 		if pixelNumber < 2*dimension ||
 			(pixelNumber+1)%dimension == 0 ||
 			(pixelNumber+2)%dimension == 0 ||
@@ -88,7 +86,7 @@ func (b *block) drawBlock(renderer *sdl.Renderer) {
 			renderer.FillRect(&b.pixels[i].val)
 
 		} else {
-			renderer.SetDrawColor(255, 0, 0, 255)
+			renderer.SetDrawColor(0, 0, 0, 255)
 			renderer.FillRect(&b.pixels[i].val)
 		}
 
