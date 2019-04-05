@@ -7,16 +7,14 @@ import (
 )
 
 const (
-	screenWidth      = 600
-	screenHeight     = 600
-	boxSize          = 10
-	totalScreen      = screenWidth * screenHeight
-	screenDimensions = totalScreen / boxSize
-	rectSize         = screenHeight / boxSize
+	screenWidth  = 700
+	screenHeight = 700
+	boxSize      = 1
+	totalScreen  = screenWidth * screenHeight
+	rectSize     = screenHeight
 )
 
 func main() {
-	fmt.Println("hello go")
 	if err := sdl.Init(sdl.INIT_EVERYTHING); err != nil {
 		fmt.Println("initializing SDL:", err)
 		return
@@ -35,67 +33,42 @@ func main() {
 		return
 	}
 
-	// Destroys window at end of execution
-	defer window.Destroy()
-
 	renderer, err := sdl.CreateRenderer(window, -1, sdl.RENDERER_ACCELERATED)
 	if err != nil {
 		fmt.Println("initializing SDL:", err)
 		return
 	}
 
-	rectArray := make([]sdl.Rect, screenDimensions)
-	xCoor := 0
-	yCoor := 0
-	for i := 0; i < screenDimensions; i++ {
-		rectArray[i] = sdl.Rect{int32(xCoor), int32(yCoor), boxSize, boxSize}
-		xCoor = xCoor + boxSize
-
-		// Basically moving left to right and then reset a row down
-		if xCoor >= screenWidth {
-			xCoor = 0
-			yCoor = yCoor + boxSize
-		}
-	}
-
-	// Destroys renderer at end of execution
+	// Destroys window and renderer
+	defer window.Destroy()
 	defer renderer.Destroy()
 
-	// startUp := false
-	prevX := int32(0)
-	prevY := int32(0)
+	rectArray := createRectArray(
+		screenWidth,
+		screenHeight,
+		totalScreen)
+
+	b1 := initBlock(1, 0, 0, 700)
+	b2 := initBlock(1, 100, 0, 700)
 
 	for {
-		//initialize gameboard
-		// if startUp == false {
-		// 	renderer.SetDrawColor(255, 255, 255, 255)
-		// 	renderer.Clear()
-
-		// 	for i := 0; i < len(rectArray); i++ {
-		// 		renderer.SetDrawColor(0, 0, 0, 255)
-		// 		renderer.DrawRect(&rectArray[i])
-		// 	}
-
-		// 	renderer.Present()
-		// 	fmt.Println("turned screen white")
-		// 	startUp = true
-		// }
 		for event := sdl.PollEvent(); event != nil; event = sdl.PollEvent() {
 			switch val := event.(type) {
-			// For exiting window
+
 			case *sdl.QuitEvent:
 				return
 
 			case *sdl.KeyboardEvent:
+				if val.Keysym.Sym == sdl.K_SPACE {
+					fmt.Println("SPACE pressed")
 
-				// Don't need to press this anymore but just if I want to use the keydown thing
-				if val.Keysym.Sym == sdl.K_ESCAPE {
-					fmt.Println("ESC pressed")
+					b1.drawBlock(renderer)
+					b2.drawBlock(renderer)
 
-					for i := 0; i < len(rectArray); i++ {
-						renderer.SetDrawColor(0, 0, 0, 255)
-						renderer.DrawRect(&rectArray[i])
-					}
+					// for i := 0; i < len(b.pixels); i++ {
+					// 	renderer.SetDrawColor(255, 255, 255, 255)
+					// 	renderer.FillRect(&b.pixels[i])
+					// }
 				}
 			}
 		}
@@ -103,27 +76,15 @@ func main() {
 		//checks if mouse is clicked
 		mouseX, mouseY, mouseButtonState := sdl.GetMouseState()
 
-		if mouseX != prevX && mouseY != prevY && mouseButtonState == 1 {
+		if mouseButtonState == 1 {
 			fmt.Printf("Mouse at x: %+v, y: %+v, state: %+v\n", mouseX, mouseY, mouseButtonState)
-			prevX = mouseX
-			prevY = mouseY
+			index := int((mouseX) + rectSize*(mouseY))
 
-			index := int((mouseX / boxSize) + rectSize*(mouseY/boxSize))
-
-			if index >= (rectSize)*(rectSize) {
-				fmt.Println("out of index:")
-				return
-			}
-
-			renderer.SetDrawColor(0, 0, 255, 255)
-			renderer.FillRect(&rectArray[index])
-			// renderer.Present()
+			//from player.go
+			colorRect(renderer, &rectArray[index])
 		}
 
 		renderer.Present()
-		renderer.SetDrawColor(255, 255, 255, 255)
-		renderer.Clear()
-
 	}
 
 }
