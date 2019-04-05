@@ -68,7 +68,6 @@ func createPixelArray(offsetX int, offsetY int, dimension int) []pixel {
 		pixelArray[i] = newPixel(canChange, sdl.Rect{xWithOffset, yWithOffset, 1, 1})
 		xCoor = xCoor + 1
 
-		// Basically moving left to right and then reset a row down
 		if xCoor >= dimension {
 			xCoor = 0
 			yCoor = yCoor + 1
@@ -78,9 +77,9 @@ func createPixelArray(offsetX int, offsetY int, dimension int) []pixel {
 	return pixelArray
 }
 
-func (b *block) drawBlock(renderer *sdl.Renderer) {
+//renderBlock draws boxes on screen, they are either white and in the middle, or black and a border
+func (b *block) renderBlock(renderer *sdl.Renderer) {
 	for i := 0; i < len(b.pixels); i++ {
-
 		if b.pixels[i].canChange {
 			renderer.SetDrawColor(255, 255, 255, 255)
 			renderer.FillRect(&b.pixels[i].val)
@@ -89,9 +88,20 @@ func (b *block) drawBlock(renderer *sdl.Renderer) {
 			renderer.SetDrawColor(0, 0, 0, 255)
 			renderer.FillRect(&b.pixels[i].val)
 		}
-
 	}
+}
 
+//drawOnBlock determines if a user can draw on a block
+func (b *block) drawOnBlock(renderer *sdl.Renderer, mouseX int, mouseY int, blockDim int) {
+	if b.isAllowed() {
+		blockIndex := (mouseX - b.offsetX) + (mouseY-b.offsetY)*blockDim
+
+		if b.pixels[blockIndex].canChange {
+			renderer.SetDrawColor(255, 0, 0, 255)
+			renderer.FillRect(&b.pixels[blockIndex].val)
+			b.coloredPixels++
+		}
+	}
 }
 
 // isAllowed checks to see if block can be coloured - need to setup w/ network though

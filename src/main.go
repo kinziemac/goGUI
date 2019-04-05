@@ -42,9 +42,9 @@ func main() {
 	defer window.Destroy()
 	defer renderer.Destroy()
 
-	rectArray := createRectArray(
-		screenDim,
-		totalScreen)
+	// rectArray := createRectArray(
+	// 	screenDim,
+	// 	totalScreen)
 
 	// blockArray := createBlockArray(
 	blockArray := createBlockArray(
@@ -65,7 +65,7 @@ func main() {
 
 					//creates board
 					for i := 0; i < len(blockArray); i++ {
-						blockArray[i].drawBlock(renderer)
+						blockArray[i].renderBlock(renderer)
 					}
 				}
 			}
@@ -75,15 +75,12 @@ func main() {
 
 		if mouseButtonState == 1 {
 
-			// fmt.Printf("Mouse at x: %+v, y: %+v, state: %+v\n", mouseX, mouseY, mouseButtonState)
-
-			index := int(mouseX + screenDim*mouseY)
-
 			boxIndex := (mouseX / blockDim) + (mouseY/blockDim)*blocksPerPage
-			fmt.Println("Selected this box: ", boxIndex)
 
 			//from player.go
-			colorRect(renderer, &rectArray[index])
+			blockArray[boxIndex].drawOnBlock(renderer, int(mouseX), int(mouseY), blockDim)
+			// colorRect(renderer, &rectArray[index])
+			// colorRect(renderer, &rectArray[index])
 		}
 
 		renderer.Present()
