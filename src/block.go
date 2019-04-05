@@ -20,10 +20,10 @@ type block struct {
 
 //make block 50x50 -> 2500 pixels
 //window Dimension
-func initBlock(blockID int, xIndex int, yIndex int, windowD int) (b block) {
+func initBlock(blockID int, xIndex int, yIndex int, windowD int, blockDim int) (b block) {
 
 	//Configure fields for Block
-	b.dimension = 50
+	b.dimension = blockDim
 	b.minColored = 1500
 	b.isFilled = false
 	b.owner = -1
@@ -93,21 +93,23 @@ func (b *block) renderBlock(renderer *sdl.Renderer) {
 }
 
 //drawOnBlock determines if a user can draw on a block
-func (b *block) drawOnBlock(renderer *sdl.Renderer, mouseX int, mouseY int, blockDim int) {
-	if b.isAllowed() {
-		blockIndex := (mouseX - b.offsetX) + (mouseY-b.offsetY)*blockDim
+func (b *block) drawOnBlock(renderer *sdl.Renderer, mouseX int, mouseY int, blockDim int, p *player) {
+	blockIndex := (mouseX - b.offsetX) + (mouseY-b.offsetY)*blockDim
 
-		if b.pixels[blockIndex].canChange {
-			renderer.SetDrawColor(255, 0, 0, 255)
-			renderer.FillRect(&b.pixels[blockIndex].val)
-			b.coloredPixels++
-		}
+	if b.pixels[blockIndex].canChange {
+		renderer.SetDrawColor(255, 0, 0, 255)
+		renderer.FillRect(&b.pixels[blockIndex].val)
+		b.coloredPixels++
 	}
 }
 
 // isAllowed checks to see if block can be coloured - need to setup w/ network though
-func (b *block) isAllowed() bool {
-	return true
+func (b *block) isAllowed(p *player) bool {
+	if !b.isFilled && p.currentBlock == int32(b.blockID) {
+		return true
+	}
+
+	return false
 }
 
 // blockFilled checks if minimum number of blocks are filled
@@ -119,13 +121,23 @@ func (b *block) blockFilled() bool {
 	return false
 }
 
+func (b *block) completeBlock(p *player, renderer *sdl.Renderer) {
+	p.score++
+
+	b.fillBlock(255, 0, 0, renderer)
+	b.coloredPixels = b.dimension * b.dimension
+	b.isFilled = true
+	b.owner = p.id
+}
+
 func (b *block) resetBlock(renderer *sdl.Renderer) {
 	b.fillBlock(0, 0, 0, renderer)
 	b.coloredPixels = 0
+	b.busy = false
 }
 
 // fillBlock will either fill the block or undo the changes made by the player
-func (b *block) fillBlock(red uint8, green uint8, blue uint8, renderer *sdl.Renderer) {
+func (b *block) fillBlock(red, green, blue uint8, renderer *sdl.Renderer) {
 	for i := 0; i < len(b.pixels); i++ {
 		if b.pixels[i].canChange {
 			renderer.SetDrawColor(red, green, blue, 255)

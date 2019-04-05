@@ -2,13 +2,14 @@ package main
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/veandco/go-sdl2/sdl"
 )
 
 const (
 	screenDim     = 700
-	blockDim      = 50
+	blockDim      = 100
 	totalScreen   = screenDim * screenDim
 	blocksPerPage = screenDim / blockDim
 )
@@ -60,12 +61,13 @@ func main() {
 
 			case *sdl.KeyboardEvent:
 				if val.Keysym.Sym == sdl.K_SPACE {
-					fmt.Println("SPACE pressed")
+					fmt.Println("SPACE pressed - this creates the board, may need to hit a couple times")
 
 					//creates board
 					for i := 0; i < len(blockArray); i++ {
 						blockArray[i].renderBlock(renderer)
 					}
+					renderer.Present()
 				}
 
 				if val.Keysym.Sym == sdl.K_ESCAPE {
@@ -83,35 +85,40 @@ func main() {
 				p.currentBlock = boxIndex
 			}
 
-			if blockArray[boxIndex].isAllowed() && p.currentBlock == boxIndex {
+			//if block is currently unfinished or not owned by anyone and if the user is currently writing on it
+			if blockArray[boxIndex].isAllowed(&p) {
 				p.active = true
-				blockArray[boxIndex].drawOnBlock(renderer, int(mouseX), int(mouseY), blockDim)
+				blockArray[boxIndex].drawOnBlock(renderer, int(mouseX), int(mouseY), blockDim, &p)
+				renderer.Present()
+
 			} else if p.currentBlock != boxIndex {
-				//do nothing
+				//do nothing, they've gone out of the lines
 
 			} else {
 				p.currentBlock = -1
 			}
 
+			//when player unclicks
 		} else {
 			if p.active {
 				if blockArray[p.currentBlock].blockFilled() {
-					blockArray[p.currentBlock].fillBlock(255, 0, 0, renderer)
-					p.score++
+					blockArray[p.currentBlock].completeBlock(&p, renderer)
 					fmt.Println("You coloured all of it!")
+					time.Sleep(20 * time.Millisecond)
 
 				} else {
-					blockArray[p.currentBlock].fillBlock(0, 0, 0, renderer)
+					blockArray[p.currentBlock].resetBlock(renderer)
 					fmt.Println("You didn't colour all of it :(")
 				}
 
 				p.currentBlock = -1
 				p.active = false
+				renderer.Present()
 			}
 
 		}
 
-		renderer.Present()
+		// renderer.Present()
 	}
 
 }
